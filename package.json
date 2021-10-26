@@ -1,0 +1,23 @@
+{
+  "name": "foreign-key",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "create_db": "psql -U postgres -f sql/create_db.sql",
+    "create_tables": "psql -U postgres -d foreign_key_test -f sql/create_tables.sql",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^2.0.14"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.17.1",
+    "morgan": "^1.10.0",
+    "pg-promise": "^10.11.1"
+  }
+}
