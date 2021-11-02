@@ -1,7 +1,9 @@
+require('dotenv').config()
 const express = require('express')
-const bcrypt = require('bcryptjs')
 const morgan = require('morgan')
+const session = require('express-session')
 const db = require('./database')
+const usersRouter = require('./routes/users')
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -9,28 +11,21 @@ const PORT = process.env.PORT || 3000
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(morgan('dev'))
+app.set("view engine", "ejs")
 
-// add a new user
-app.post('/users', (req, res) => {
-  const { email, password } = req.body
-  // please validate!
+// Session config
+app.use(session({
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24,
+  },
+  name: "mrcoffee_sid",
+  resave: false,
+  saveUninitialized: false,
+  secret: process.env.SESSION_SECRET
+}))
 
-  const salt = bcrypt.genSaltSync(10)
-  const hash = bcrypt.hashSync(password, salt)
-  const cleanedEmail = email.toLowerCase().trim()
-
-  db.none('INSERT INTO users (email, password) VALUES ($1, $2);', [cleanedEmail, hash])
-  .then(() => {
-    res.send({
-      email: cleanedEmail,
-      password: hash
-    })
-  })
-  .catch((err) => {
-    console.log(err)
-    res.send(err.message)
-  })
-})
+// ROUTES
+app.use('/users', usersRouter)
 
 // add a new Posts for user (written thing)
 app.post('/posts', (req, res) => {
