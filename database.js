@@ -1,6 +1,7 @@
 const pgp = require('pg-promise')()
+const {DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_DATABASE} = process.env
 
-const cn = 'postgres://caterinaturnbull:12345678@localhost:5432/foreign_key_test'
+const cn = `postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}`
 
 const db = pgp(cn)
 
