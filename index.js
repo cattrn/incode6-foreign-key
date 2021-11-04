@@ -4,6 +4,9 @@ const morgan = require('morgan')
 const session = require('express-session')
 const db = require('./database')
 const usersRouter = require('./routes/users')
+const postsRouter = require('./routes/posts')
+const homeRouter = require('./routes/home')
+const logoutRouter = require('./routes/logout')
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -13,34 +16,23 @@ app.use(express.urlencoded({ extended: true }))
 app.use(morgan('dev'))
 app.set("view engine", "ejs")
 
-// Session config
+// session config
 app.use(session({
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24,
+    maxAge: 24 * 60 * 60 * 1000
   },
   name: "mrcoffee_sid",
-  resave: false,
   saveUninitialized: false,
+  resave: false,
   secret: process.env.SESSION_SECRET
 }))
 
+
 // ROUTES
 app.use('/users', usersRouter)
-
-// add a new Posts for user (written thing)
-app.post('/posts', (req, res) => {
-  const { user_id, title, content } = req.body
-  // please validate!
-
-  db.none('INSERT INTO posts (user_id, title, content) VALUES ($1, $2, $3);', [user_id, title, content])
-  .then(() => {
-    res.send(req.body)
-  })
-  .catch((err) => {
-    console.log(err)
-    res.send(err.message)
-  })
-})
+app.use('/posts', postsRouter)
+app.use('/logout', logoutRouter)
+app.use('/', homeRouter)
 
 
 app.listen(PORT, () => console.log(`Listening at http://localhost:${PORT}`))

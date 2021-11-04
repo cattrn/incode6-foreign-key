@@ -1,6 +1,7 @@
 const express = require('express')
 const bcrypt = require('bcryptjs')
 const db = require('../database')
+const { redirectToHome } = require('../middleware/redirect')
 const router = express.Router()
 
 const emailRegex = /^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/
@@ -18,7 +19,9 @@ const cleanEmail = (email) => {
 // display register form
 router.get('/register', (req, res) => res.render('pages/register'))
 
-// register a new user
+// @path    '/users/register'
+// @desc    register a new user
+// @access  public
 router.post('/register', (req, res) => {
   const { email, password, confirmPassword } = req.body
   const cleanedEmail = cleanEmail(email)
@@ -43,10 +46,8 @@ router.post('/register', (req, res) => {
 
     db.none('INSERT INTO users (email, password) VALUES ($1, $2);', [cleanedEmail, hash])
     .then(() => {
-      res.send({
-        email: cleanedEmail,
-        password: hash
-      })
+      res.redirect('/users/login')
+      // TODO: add success message
     })
     .catch((err) => {
       // error inserting into db
@@ -63,12 +64,13 @@ router.post('/register', (req, res) => {
 
 
 
-// display login form
-router.get('/login', (req, res) => res.render('pages/login'))
+// @path    '/users/login'
+// @desc    login a user
+// @access  public
+router.get('/login', redirectToHome, (req, res) => res.render('pages/login'))
 
 // login a user
-router.post('/login', (req, res) => {
-  console.log(req.session)
+router.post('/login', redirectToHome, (req, res) => {
   const { email, password } = req. body
   const cleanedEmail = cleanEmail(email)
 
@@ -86,15 +88,12 @@ router.post('/login', (req, res) => {
     const checkPassword = bcrypt.compareSync(password, user.password)
     if (!checkPassword) return res.send("Credentials are not correct")
 
-    // 4. user is valid!!!
+    // 4. user is valid!!! do something to track them
     // >>>>>>>>>>>>>>>>>>>
     req.session.userId = user.id
     console.log(req.session)
     
-    res.send({
-      message: "User logged in!",
-      email: cleanedEmail
-    })
+    res.redirect('/')
 
     // User ID can be accessed on any route via req.session.userId
   })
