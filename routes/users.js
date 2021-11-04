@@ -17,7 +17,11 @@ const cleanEmail = (email) => {
 }
 
 // display register form
-router.get('/register', (req, res) => res.render('pages/register'))
+router.get('/register', (req, res) => {
+  res.render('pages/register', {
+    errors: req.flash("error")
+  })
+})
 
 // @path    '/users/register'
 // @desc    register a new user
@@ -28,10 +32,11 @@ router.post('/register', (req, res) => {
 
   // 1. validate! - yup and joi are decent validation packages
 
-  if (!email || !password || !confirmPassword ) return res.send("Please enter all fields")
-  if (!isValid(cleanedEmail, emailRegex)) return res.send("Email not valid")
-  if (!isValid(password, passwordRegex)) return res.send("Password must be 6 characters or more")
-  if (password !== confirmPassword) return res.send("Passwords don't match")
+  if (!email || !password || !confirmPassword ) req.flash("error", "Please enter all fields")
+  if (!isValid(cleanedEmail, emailRegex)) req.flash("error", "Email not valid")
+  if (!isValid(password, passwordRegex)) req.flash("error", "Password must be 6 characters or more")
+  if (password !== confirmPassword) req.flash("error", "Passwords don't match")
+  if (req.session.flash.error.length > 0) return res.redirect("/users/register")
 
   // 2. check if email already exists
 
@@ -46,6 +51,8 @@ router.post('/register', (req, res) => {
 
     db.none('INSERT INTO users (email, password) VALUES ($1, $2);', [cleanedEmail, hash])
     .then(() => {
+      req.flash('success', 'User successfully created, please login.')
+      req.flash('success', 'Good job!')
       res.redirect('/users/login')
       // TODO: add success message
     })
@@ -67,7 +74,12 @@ router.post('/register', (req, res) => {
 // @path    '/users/login'
 // @desc    login a user
 // @access  public
-router.get('/login', redirectToHome, (req, res) => res.render('pages/login'))
+router.get('/login', redirectToHome, (req, res) => {
+  console.log(req.session)
+  console.log(req.flash('success'))
+  console.log(req.session.flash)
+  res.render('pages/login')
+})
 
 // login a user
 router.post('/login', redirectToHome, (req, res) => {

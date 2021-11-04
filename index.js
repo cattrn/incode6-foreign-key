@@ -2,6 +2,7 @@ require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const session = require('express-session')
+const flash = require('express-flash')
 const db = require('./database')
 const usersRouter = require('./routes/users')
 const postsRouter = require('./routes/posts')
@@ -26,6 +27,8 @@ app.use(session({
   resave: false,
   secret: process.env.SESSION_SECRET
 }))
+
+app.use(flash())
 
 
 // ROUTES
